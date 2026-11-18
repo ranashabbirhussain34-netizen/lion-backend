@@ -5,7 +5,7 @@ import fs from "fs";
 const PORT = process.env.PORT || 3000;
 const START_CREDITS = 50;
 const COST = { image: 1, sticker: 1, voice: 2, music: 3, motion: 3, video: 5 };
-const DB = "/tmp/db.json"
+const DB = "/tmp/db.json";
 const load = () => { try { return JSON.parse(fs.readFileSync(DB, "utf8")); } catch { return { users: {} }; } };
 const save = (d) => fs.writeFileSync(DB, JSON.stringify(d, null, 2));
 const getUser = (d, id) => (d.users[id] ??= { credits: START_CREDITS, plan: "Free", name: "", email: "", items: [] });
@@ -26,32 +26,35 @@ const providers = {
 };
 
 async function lionAI(idea) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    const e = new Error("LION AI needs ANTHROPIC_API_KEY in settings.");
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) {
+    const e = new Error("LION AI needs GEMINI_API_KEY in settings.");
     e.status = 501;
     throw e;
   }
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent", {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-api-key": process.env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
+    headers: { "content-type": "application/json", "x-goog-api-key": key },
     body: JSON.stringify({
-      model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6",
-      max_tokens: 1000,
-      system: "You are LION AI, a creative planning assistant inside LION STUDIO. Turn the user's video idea into short scenes, an image/video prompt for each scene, a voice-over script and a music plan. Be concise. Reply in the user's language.",
-      messages: [{ role: "user", content: idea }],
+      systemInstruction: { parts: [{ text: "You are LION AI, a creative planning assistant inside LION STUDIO. Turn the user's video idea into short scenes, an image/video prompt for each scene, a voice-over script and a music plan. Be concise. Reply in the user's language." }] },
+      contents: [{ role: "user", parts: [{ text: idea }] }],
     }),
   });
   const data = await r.json();
   if (!r.ok) {
-    const e = new Error(data?.error?.message || "LION AI request failed.");
+    const e = new Error((data && data.error && data.error.message) || "LION AI request failed.");
     e.status = 502;
     throw e;
   }
-  return data.content.filter((b) => b.type === "text").map((b) => b.text).join("\n");
+  const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+  const text = parts.map((p) => p.text || "").join("\n").trim();
+  if (!text) {
+    const e = new Error("LION AI returned no text. Try again.");
+    e.status = 502;
+    throw e;
+  }
+  return text;
 }
 
 const app = express();
