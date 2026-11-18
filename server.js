@@ -5,7 +5,7 @@ import fs from "fs";
 const PORT = process.env.PORT || 3000;
 const START_CREDITS = 50;
 const COST = { image: 1, sticker: 1, voice: 2, music: 3, motion: 3, video: 5 };
-const DB = "db.json";
+const DB = "/tmp/db.json"
 const load = () => { try { return JSON.parse(fs.readFileSync(DB, "utf8")); } catch { return { users: {} }; } };
 const save = (d) => fs.writeFileSync(DB, JSON.stringify(d, null, 2));
 const getUser = (d, id) => (d.users[id] ??= { credits: START_CREDITS, plan: "Free", name: "", email: "", items: [] });
