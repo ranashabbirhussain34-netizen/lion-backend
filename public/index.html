@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LION STUDIO</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a1024;--card:rgba(255,255,255,.07);--line:rgba(255,255,255,.14);--ink:#eef1ff;--muted:#a4adcf;--field:rgba(8,12,32,.7);--blue:#4f7cff;--violet:#7c5cff;--cyan:#27d3e6;--amber:#ffb23f;--rose:#e56fd0;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+:root[data-theme="gold"]{--bg:#161004;--blue:#e8a317;--violet:#f4c430;--cyan:#2e9b4f;--field:rgba(20,14,2,.75)}
+:root[data-theme="light"]{--bg:#eef1fb;--card:rgba(255,255,255,.85);--line:rgba(20,30,80,.15);--ink:#14204a;--muted:#55608a;--field:#fff}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;font-family:Roboto,system-ui,sans-serif;color:var(--ink);background:radial-gradient(900px 500px at 80% 10%,color-mix(in srgb,var(--violet) 35%,transparent),transparent),radial-gradient(700px 500px at 0% 60%,color-mix(in srgb,var(--blue) 25%,transparent),transparent),var(--bg);min-height:100vh}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:10px;padding:12px 16px;background:color-mix(in srgb,var(--bg) 80%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--violet));display:grid;place-items:center;font-size:22px}
+header b{font-weight:900;letter-spacing:.04em;font-size:19px;flex:1}
+.pill{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 14px;font-size:14px;font-weight:500;color:var(--ink);cursor:pointer}
+main{max-width:560px;margin:0 auto;padding:18px 16px 40px}
+h1{font-size:30px;font-weight:900;margin:8px 0 6px;line-height:1.15}
+.lead{color:var(--muted);margin:0 0 18px;font-size:16px;line-height:1.45}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{position:relative;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;min-height:132px;color:var(--ink);cursor:pointer;overflow:hidden}
+.tile .ic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;font-size:22px;margin-bottom:10px}
+.tile b{display:block;font-size:16px;font-weight:700}
+.tile small{display:block;color:var(--muted);font-size:13px;margin-top:4px;line-height:1.35}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px}
+.panel h2{margin:0 0 14px;font-size:24px;font-weight:700}
+.back{background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:12px;padding:8px 14px;margin-bottom:14px;font:inherit;font-size:14px;cursor:pointer}
+label{display:block;font-size:13px;font-weight:700;margin:14px 0 6px}
+label span{display:block;color:var(--muted);font-weight:400;font-size:12px}
+input,select,textarea{width:100%;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit;font-size:15px}
+textarea{min-height:96px;resize:vertical}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--blue)}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.btn{display:block;width:100%;margin-top:16px;border:0;border-radius:13px;padding:14px;font:inherit;font-weight:700;font-size:16px;color:#fff;background:linear-gradient(90deg,var(--blue),var(--violet));cursor:pointer}
+.btn.cyan{background:linear-gradient(90deg,var(--blue),var(--cyan))}
+.btn.amber{background:linear-gradient(90deg,var(--amber),#ff8a3d);color:#2a1600}
+.btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--ink)}
+.tabs{display:flex;background:var(--field);border-radius:14px;padding:4px;margin-bottom:6px}
+.tabs button{flex:1;border:0;background:none;color:var(--muted);padding:10px;border-radius:11px;font:inherit;font-weight:700;cursor:pointer}
+.tabs button.on{background:linear-gradient(90deg,var(--blue),var(--violet));color:#fff}
+.status{margin-top:14px;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:11px 12px;font-size:14px;color:var(--muted)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.row:last-of-type{border-bottom:0}.row small{display:block;color:var(--muted);font-size:12px}.row select{width:auto;min-width:140px}
+.plan{background:var(--field);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+.plan h3{margin:0;font-size:20px}.plan .pr{font-size:26px;font-weight:900;margin:4px 0}.plan p{margin:0;color:var(--muted);font-size:14px}
+.chat{display:flex;gap:12px;align-items:center;margin-bottom:12px}.chat .logo{width:46px;height:46px}.chat h2{margin:0;font-size:22px}.chat small{color:var(--muted)}
+.bubble{background:var(--field);border-radius:14px;padding:12px;font-size:15px;line-height:1.5;margin-bottom:10px}
+.bubble.me{background:linear-gradient(90deg,var(--blue),var(--violet));color:#fff;margin-left:30px}
+.empty{background:var(--field);border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:22px}
+.hint{font-size:12px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<header><div class="logo">🦁</div><b>LION STUDIO</b><button class="pill" id="credits" aria-label="Credits">✦ 50 Credits</button></header>
+<main id="app"></main>
+<script>
+var BACKEND_URL = location.origin;
+var state = { credits: 50, theme: "default", lang: "English", notif: true, images: [] };
+try { var s = JSON.parse(localStorage.getItem("lion:state50")); if (s) state = Object.assign(state, s); } catch(e){}
+function save(){ try { localStorage.setItem("lion:state50", JSON.stringify(state)); } catch(e){} }
+function uid(){ try { var u = localStorage.getItem("lion:uid"); if (!u) { u = "u" + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem("lion:uid", u); } return u; } catch(e){ return "anon"; } }
+function api(path, data){
+  if (!BACKEND_URL) return Promise.resolve({ ok:false, message:"Backend not connected yet. Set BACKEND_URL in the code." });
+  return fetch(BACKEND_URL + path, { method:"POST", headers:{ "Content-Type":"application/json", "x-user-id": uid() }, body: JSON.stringify(data) })
+    .then(function(r){ return r.json(); }).catch(function(){ return { ok:false, message:"Couldn’t reach the server. Check your connection." }; });
+}
+var $ = function(id){ return document.getElementById(id); };
+var app = $("app");
+function opts(a){ return a.map(function(x){ return "<option>"+x+"</option>"; }).join(""); }
+function field(l, html, hint){ return "<label>"+l+(hint?"<span>"+hint+"</span>":"")+"</label>"+html; }
+function applyTheme(){ document.documentElement.setAttribute("data-theme", state.theme === "LION Signature" ? "default" : state.theme === "Gold" ? "gold" : state.theme === "Light" ? "light" : "default"); }
+function setCredits(){ $("credits").textContent = "✦ " + state.credits + " Credits"; }
+var tiles = [
+ ["image","🖼️","Create Image + Video","Generate creative visuals and clips.","linear-gradient(135deg,#4f7cff,#6a5cff)"],
+ ["music","🎵","Create Music","Create original music ideas.","linear-gradient(135deg,#8a5cff,#b06cff)"],
+ ["voice","🎙️","Create Voice","Turn text into voice.","linear-gradient(135deg,#27b5ff,#27d3e6)"],
+ ["editor","🎚️","Video Editor","Edit clips and build projects.","linear-gradient(135deg,#27d3e6,#3fe0b0)"],
+ ["sticker","🖼️","Image Sticker","Create custom image stickers.","linear-gradient(135deg,#ffb23f,#ff9a3d)"],
+ ["motion","🎬","Motion Sticker","Create animated stickers.","linear-gradient(135deg,#e56fd0,#ff6fa0)"],
+ ["upload","⬆️","Upload","Upload images and videos.","linear-gradient(135deg,#2bb7ff,#3a7bff)"],
+ ["read","🔤","Read Image","Read text from images.","linear-gradient(135deg,#ffb23f,#ff8a3d)"],
+ ["myimages","🗂️","My Images","See your saved images.","linear-gradient(135deg,#5f7cff,#7a5cff)"],
+ ["ai","🦁","LION AI","Plan your video ideas.","linear-gradient(135deg,#ff9a3d,#ffcf3d)"],
+ ["plans","⭐","Upgrade Plans","Get more credits.","linear-gradient(135deg,#f4c430,#ff9a3d)"],
+ ["settings","⚙️","Settings","Language, theme, alerts.","linear-gradient(135deg,#6b7bb0,#8a9bd0)"],
+ ["account","👤","Account","Profile and billing.","linear-gradient(135deg,#27d3e6,#4f7cff)"]
+];
+function home(){
+  app.innerHTML = "<h1>Welcome to LION STUDIO</h1><p class='lead'>Create images, videos, music, voices, stickers and more in one creative studio.</p><div class='grid'>" +
+  tiles.map(function(t){ return "<button class='tile' data-go='"+t[0]+"'><div class='ic' style='background:"+t[4]+"'>"+t[1]+"</div><b>"+t[2]+"</b><small>"+t[3]+"</small></button>"; }).join("") + "</div><footer>LION STUDIO • AI Creative Studio</footer>";
+}
+function screen(title, body){ app.innerHTML = "<button class='back' data-go='home'>‹ Back</button><div class='panel'><h2>"+title+"</h2>"+body+"</div><footer>LION STUDIO • AI Creative Studio</footer>"; }
+function gen(label, cls, path, id){ return "<button class='btn "+(cls||"")+"' data-gen='"+path+"' data-form='"+id+"'>"+label+"</button><div class='status' id='st'>Ready.</div>"; }
+var views = {
+ image: function(){
+  screen("Create Image + Video",
+   "<div class='tabs'><button class='on' data-tab='img'>Image</button><button data-tab='vid'>Video</button></div>" +
+   "<div id='tabimg'>"+field("Image Prompt","<textarea id='p1' placeholder='Describe the image you want to create...'></textarea>")+
+   field("Add Image","<input type='file' accept='image/*'>")+
+   field("Ratio","<select id='r1'>"+opts(["1:1","16:9","9:16","4:3"])+"</select>")+
+   field("Number of Images","<select id='n1'>"+opts(["1","2","3","4"])+"</select>")+
+   field("AI Model","<select id='m1'>"+opts(["Omni Flash","Omni Pro"])+"</select>")+
+   gen("Generate Image","","/api/image","tabimg")+"</div>" +
+   "<div id='tabvid' hidden>"+field("Video Prompt","<textarea id='p2' placeholder='Describe the video you want to create...'></textarea>")+
+   field("Add Image","<input type='file' accept='image/*'>")+
+   field("Clip Duration","<select>"+opts(["5 Seconds","7 Seconds","10 Seconds"])+"</select>")+
+   field("Project Duration","<select>"+opts(["30 Seconds","1 Minute","2 Minutes","5 Minutes"])+"</select>")+
+   field("Ratio","<select>"+opts(["16:9","9:16","1:1"])+"</select>")+
+   field("Quality","<select>"+opts(["360p","720p","1080p"])+"</select>")+
+   field("Number of Clips","<select>"+opts(["1","2","3","4","5"])+"</select>")+
+   field("AI Model","<select>"+opts(["Omni Flash","Omni Pro"])+"</select>")+
+   "<button class='btn cyan' data-gen='/api/video' data-form='tabvid'>Generate Video Clip</button><div class='status' id='st2'>Ready.</div></div>");
+ },
+ music: function(){ screen("Create Music", field("Music Prompt","<textarea id='p' placeholder='Describe the music you want...'></textarea>")+field("Style","<select>"+opts(["Pop","Cinematic","Lo-fi","Nasheed","Folk","Electronic"])+"</select>")+field("Length","<select>"+opts(["30 Seconds","1 Minute","2 Minutes"])+"</select>")+gen("Generate Music","","/api/music","app")); },
+ voice: function(){ screen("Create Voice", field("Voice Text","<textarea id='p' placeholder='Type the text to turn into voice...'></textarea>")+field("Language","<select>"+opts(["English","Urdu","Arabic","Chinese","Japanese","Korean","Hindi","French","German","Spanish","All Supported Languages"])+"</select>")+field("Voice Type","<select>"+opts(["Female","Male","Child"])+"</select>")+gen("Generate Voice","cyan","/api/voice","app")); },
+ editor: function(){ screen("Video Editor", field("Add Clips","<input type='file' accept='video/*' multiple>")+field("Add Music","<input type='file' accept='audio/*'>")+field("Edit Note","<textarea placeholder='For example: trim the first 5 seconds and add a title...'></textarea>")+gen("Build Project","cyan","/api/edit","app")); },
+ sticker: function(){ screen("Create Image Sticker", field("Sticker Prompt","<textarea placeholder='Describe your sticker...'></textarea>")+field("Upload Image","<input type='file' accept='image/*'>")+field("Background","<select>"+opts(["Transparent","White","Color"])+"</select>")+gen("Generate Image Sticker","amber","/api/sticker","app")); },
+ motion: function(){ screen("Create Motion Sticker", field("Sticker Prompt","<textarea placeholder='Describe your animated sticker...'></textarea>")+field("Upload Image","<input type='file' accept='image/*'>")+field("Animation","<select>"+opts(["Bounce","Wave","Spin","Pulse"])+"</select>")+gen("Generate Motion Sticker","","/api/motion","app")); },
+ upload: function(){ screen("Upload", field("Choose images or videos","<input type='file' accept='image/*,video/*' multiple>")+gen("Upload","cyan","/api/upload","app")); },
+ read: function(){ screen("Read Image", field("Image with text","<input type='file' accept='image/*'>")+field("Text language","<select>"+opts(["Auto","English","Urdu","Arabic"])+"</select>")+gen("Read Text","amber","/api/ocr","app")); },
+ myimages: function(){ screen("My Images", state.images.length ? state.images.map(function(u){ return "<img src='"+u+"' alt='' style='width:100%;border-radius:12px;margin-bottom:10px'>"; }).join("") : "<div class='empty'>No saved images yet.</div>"); },
+ ai: function(){
+  app.innerHTML = "<button class='back' data-go='home'>‹ Back</button><div class='panel'><div class='chat'><div class='logo'>🦁</div><div><h2>LION AI</h2><small>Your creative planning assistant</small></div></div>" +
+   "<div class='bubble'>I am LION AI. Tell me your video idea, and I can help you turn it into scenes, prompts, voice, and a music plan.</div><div id='log'></div>" +
+   field("Video Idea","<textarea id='idea' placeholder='I want to create a cartoon adventure video...'></textarea>")+
+   "<button class='btn' style='width:auto;display:inline-block;padding:11px 18px;font-size:14px' data-ask='1'>Ask LION AI</button> <button class='btn cyan' style='width:auto;display:inline-block;padding:11px 18px;font-size:14px' data-go='image'>Send Plan to Video Generator</button><div class='status' id='st'>Ready.</div></div><footer>LION STUDIO • AI Creative Studio</footer>";
+ },
+ plans: function(){
+  var F=["🖼️ Images","🎬 Video clips","🎵 Music","🎙️ Voice","🏷️ Stickers"];
+  var P=[["Starter","Rs. 1000","1000 Credits",["Up to 600","Up to 200","Up to 333 songs","Up to 500","Up to 1000"]],["Creator Max","Rs. 5000","5000 Credits",["Up to 3000","Up to 1000","Up to 1666 songs","Up to 2500","Up to 5000"]],["Ultimate","Rs. 8000","10000 Credits",["Unlimited","Up to 2000","Up to 3333 songs","Up to 5000","Up to 10000"]]];
+  var cost="<div class='empty' style='margin-bottom:12px'><b>Credits per use</b><br>Image 1 • Sticker 1 • Voice 2 • Music 3 • Motion sticker 3 • Video clip 5</div>";
+  screen("Upgrade Plans", cost+P.map(function(p){ return "<div class='plan'><h3>"+p[0]+"</h3><div class='pr'>"+p[1]+"</div><p><b>"+p[2]+"</b></p>"+F.map(function(f,i){ return "<div class='row' style='padding:8px 0'><span>"+f+"</span><span>"+p[3][i]+"</span></div>"; }).join("")+"<p style='margin-top:8px'>✓ Video Editor, Read Image, Upload and LION AI included</p><button class='btn' data-plan='"+p[0]+"'>Choose Plan</button></div>"; }).join("")+"<p class='hint'>Numbers show the most you can make if you spend all your credits on that one feature.</p><div class='status' id='st'>Choose a plan to continue.</div>");
+ },
+ settings: function(){
+  screen("Settings",
+   "<div class='row'><div>App Language<small>Interface language</small></div><select id='sl'>"+opts(["English","Urdu"])+"</select></div>"+
+   "<div class='row'><div>Theme<small>Choose your app appearance</small></div><select id='sth'>"+opts(["LION Signature","Gold","Light"])+"</select></div>"+
+   "<div class='row'><div>Notifications<small>App notifications</small></div><input type='checkbox' id='sn'></div>"+
+   "<button class='btn' data-save='1'>Save Settings</button><button class='btn cyan' data-go='home'>Open Google Assistant</button><div class='status' id='st'>Ready.</div>");
+  $("sl").value = state.lang; $("sth").value = state.theme === "default" ? "LION Signature" : state.theme; $("sn").checked = state.notif;
+ },
+ account: function(){ screen("Account", field("Name","<input id='an' placeholder='Your name'>")+field("Email","<input id='ae' type='email' placeholder='you@example.com'>")+"<div class='row'><div>Current plan<small>Free</small></div><b>"+state.credits+" credits</b></div><button class='btn' data-go='plans'>Upgrade</button><button class='btn ghost' data-gen='/api/account' data-form='app'>Save Account</button><div class='status' id='st'>Ready.</div>"); }
+};
+function go(k){ if (k === "home") home(); else if (views[k]) views[k](); window.scrollTo(0,0); }
+app.addEventListener("click", function(e){
+  var t = e.target.closest("[data-go],[data-gen],[data-tab],[data-ask],[data-plan],[data-save]"); if (!t) return;
+  if (t.dataset.go) return go(t.dataset.go);
+  if (t.dataset.tab) {
+    var v = t.dataset.tab === "vid"; $("tabimg").hidden = v; $("tabvid").hidden = !v;
+    document.querySelectorAll(".tabs button").forEach(function(b){ b.classList.toggle("on", b === t); }); return;
+  }
+  if (t.dataset.gen) {
+    var box = t.closest("#tabvid") ? $("st2") : $("st"); box.textContent = "Working…";
+    var scope = t.closest("#tabimg,#tabvid,.panel"), data = {};
+    scope.querySelectorAll("textarea,select,input[type=text],input:not([type])").forEach(function(el,i){ data[el.id || "f"+i] = el.value; });
+    api(t.dataset.gen, data).then(function(r){
+      box.textContent = r.message || (r.ok ? "Done." : "Something went wrong.");
+      if (r.ok) { state.credits = typeof r.credits === "number" ? r.credits : Math.max(0, state.credits - 1); if (r.url) state.images.push(r.url); save(); setCredits(); }
+    }); return;
+  }
+  if (t.dataset.ask) {
+    var idea = $("idea").value.trim(); if (!idea) { $("st").textContent = "Write your video idea first."; return; }
+    $("log").insertAdjacentHTML("beforeend","<div class='bubble me'></div>"); $("log").lastChild.textContent = idea; $("st").textContent = "Thinking…";
+    api("/api/ai", { idea: idea }).then(function(r){
+      $("log").insertAdjacentHTML("beforeend","<div class='bubble'></div>"); $("log").lastChild.textContent = r.reply || r.message || "No reply.";
+      $("st").textContent = "Ready.";
+    }); return;
+  }
+  if (t.dataset.plan) { $("st").textContent = "Payment isn’t connected yet. Plan chosen: " + t.dataset.plan; return; }
+  if (t.dataset.save) {
+    state.lang = $("sl").value; state.theme = $("sth").value === "LION Signature" ? "default" : $("sth").value; state.notif = $("sn").checked;
+    save(); applyTheme(); $("st").textContent = "Settings saved.";
+  }
+});
+$("credits").addEventListener("click", function(){ go("plans"); });
+applyTheme(); setCredits(); home();
+</script>
+</body>
+</html>
