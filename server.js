@@ -6,6 +6,7 @@ const PORT = process.env.PORT || 3000;
 const START_CREDITS = 50;
 const COST = { image: 1, sticker: 1, voice: 2, music: 3, motion: 3, video: 5 };
 const DB = "/tmp/db.json";
+const BASE = "https://generativelanguage.googleapis.com/v1beta";
 const load = () => { try { return JSON.parse(fs.readFileSync(DB, "utf8")); } catch { return { users: {} }; } };
 const save = (d) => fs.writeFileSync(DB, JSON.stringify(d, null, 2));
 const getUser = (d, id) => (d.users[id] ??= { credits: START_CREDITS, plan: "Free", name: "", email: "", items: [] });
@@ -25,6 +26,29 @@ const providers = {
   motion: async () => notReady("Motion sticker"),
 };
 
+const fetchT = (url, opts, ms) => {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  return fetch(url, { ...opts, signal: c.signal }).finally(() => clearTimeout(t));
+};
+
+let cache = { at: 0, list: [] };
+async function flashModels(key) {
+  if (cache.list.length && Date.now() - cache.at < 3600000) return cache.list;
+  try {
+    const r = await fetchT(BASE + "/models?pageSize=200", { headers: { "x-goog-api-key": key } }, 6000);
+    const d = await r.json();
+    const list = (d.models || [])
+      .filter((m) => (m.supportedGenerationMethods || []).includes("generateContent") && /flash/i.test(m.name) && !/image|tts|live|audio|embed|robotics|computer|thinking/i.test(m.name))
+      .map((m) => m.name.replace("models/", ""))
+      .sort((a, b) => (/lite/i.test(b) - /lite/i.test(a)) || b.localeCompare(a, undefined, { numeric: true }));
+    if (list.length) cache = { at: Date.now(), list };
+    return list;
+  } catch {
+    return [];
+  }
+}
+
 async function lionAI(idea) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) {
@@ -32,29 +56,32 @@ async function lionAI(idea) {
     e.status = 501;
     throw e;
   }
-  const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
-  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: "You are LION AI, a creative planning assistant inside LION STUDIO. Turn the user's video idea into short scenes, an image/video prompt for each scene, a voice-over script and a music plan. Be concise. Reply in the user's language." }] },
-      contents: [{ role: "user", parts: [{ text: idea }] }],
-    }),
-  });
-  const data = await r.json();
-  if (!r.ok) {
-    const e = new Error((data && data.error && data.error.message) || "LION AI request failed.");
-    e.status = 502;
-    throw e;
+  const models = (await flashModels(key)).slice(0, 3);
+  if (!models.length) models.push(process.env.GEMINI_MODEL || "gemini-3.8-flash");
+  let last = "LION AI is busy right now. Please try again in a minute.";
+  for (const model of models) {
+    try {
+      const r = await fetchT(BASE + "/models/" + model + ":generateContent", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: "You are LION AI, a creative planning assistant inside LION STUDIO. Turn the user's video idea into 3 short scenes, a one-line image/video prompt for each, a short voice-over line and a one-line music idea. Keep the whole answer under 200 words. Reply in the user's language." }] },
+          contents: [{ role: "user", parts: [{ text: idea }] }],
+          generationConfig: { maxOutputTokens: 700 },
+        }),
+      }, 7000);
+      const data = await r.json();
+      if (!r.ok) { last = (data && data.error && data.error.message) || last; continue; }
+      const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+      const text = parts.map((p) => p.text || "").join("\n").trim();
+      if (text) return text;
+    } catch {
+      last = "LION AI took too long. Please try again.";
+    }
   }
-  const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
-  const text = parts.map((p) => p.text || "").join("\n").trim();
-  if (!text) {
-    const e = new Error("LION AI returned no text. Try again.");
-    e.status = 502;
-    throw e;
-  }
-  return text;
+  const e = new Error(last);
+  e.status = 503;
+  throw e;
 }
 
 const app = express();
