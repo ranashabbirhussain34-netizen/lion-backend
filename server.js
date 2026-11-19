@@ -12,24 +12,74 @@ const save = (d) => fs.writeFileSync(DB, JSON.stringify(d, null, 2));
 const getUser = (d, id) => (d.users[id] ??= { credits: START_CREDITS, plan: "Free", name: "", email: "", items: [] });
 const promptOf = (b) => Object.values(b || {}).find((v) => typeof v === "string" && v.trim()) || "";
 
-const notReady = (what) => {
-  const e = new Error(what + " service is not connected yet.");
-  e.status = 501;
-  throw e;
-};
-const providers = {
-  image: async () => notReady("Image"),
-  video: async () => notReady("Video"),
-  music: async () => notReady("Music"),
-  voice: async () => notReady("Voice"),
-  sticker: async () => notReady("Sticker"),
-  motion: async () => notReady("Motion sticker"),
-};
+const fail = (msg, status) => { const e = new Error(msg); e.status = status; throw e; };
+const notReady = (what) => fail(what + " service is not connected yet.", 501);
 
 const fetchT = (url, opts, ms) => {
   const c = new AbortController();
   const t = setTimeout(() => c.abort(), ms);
   return fetch(url, { ...opts, signal: c.signal }).finally(() => clearTimeout(t));
+};
+
+function wav(pcm, rate = 24000) {
+  const h = Buffer.alloc(44);
+  h.write("RIFF", 0); h.writeUInt32LE(36 + pcm.length, 4); h.write("WAVE", 8);
+  h.write("fmt ", 12); h.writeUInt32LE(16, 16); h.writeUInt16LE(1, 20); h.writeUInt16LE(1, 22);
+  h.writeUInt32LE(rate, 24); h.writeUInt32LE(rate * 2, 28); h.writeUInt16LE(2, 32); h.writeUInt16LE(16, 34);
+  h.write("data", 36); h.writeUInt32LE(pcm.length, 40);
+  return Buffer.concat([h, pcm]);
+}
+
+const VOICES = { Female: "Kore", Male: "Charon", Child: "Leda" };
+const TTS_MODELS = process.env.GEMINI_TTS_MODEL
+  ? [process.env.GEMINI_TTS_MODEL]
+  : ["gemini-3.1-flash-tts-preview", "gemini-3.8-flash-lite-tts", "gemini-3.8-flash-tts"];
+
+async function speak(body) {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) fail("Voice needs GEMINI_API_KEY in settings.", 501);
+  const text = String((body && body.p) || "").trim().slice(0, 600);
+  if (!text) fail("Write the text first.", 400);
+  const voice = VOICES[body && body.f2] || "Kore";
+  let last = "Voice is not available right now. Please try again.";
+  for (const model of TTS_MODELS) {
+    try {
+      const r = await fetchT(BASE + "/models/" + model + ":generateContent", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text }] }],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
+          },
+        }),
+      }, 15000);
+      const data = await r.json();
+      if (!r.ok) { last = (data && data.error && data.error.message) || last; continue; }
+      const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
+      const part = parts.find((p) => p.inlineData && p.inlineData.data);
+      if (!part) { last = "No audio came back. Try shorter text."; continue; }
+      let buf = Buffer.from(part.inlineData.data, "base64");
+      if (buf.subarray(0, 4).toString("ascii") !== "RIFF") {
+        const m = /rate=(\d+)/.exec(part.inlineData.mimeType || "");
+        buf = wav(buf, m ? Number(m[1]) : 24000);
+      }
+      return { audio: "data:audio/wav;base64," + buf.toString("base64"), message: "Your voice is ready. Press play below." };
+    } catch {
+      last = "Voice took too long. Please try again.";
+    }
+  }
+  fail(last, 503);
+}
+
+const providers = {
+  image: async () => notReady("Image"),
+  video: async () => notReady("Video"),
+  music: async () => notReady("Music"),
+  voice: async (prompt, body) => speak(body),
+  sticker: async () => notReady("Sticker"),
+  motion: async () => notReady("Motion sticker"),
 };
 
 let cache = { at: 0, list: [] };
@@ -50,96 +100,3 @@ async function flashModels(key) {
 }
 
 async function lionAI(idea) {
-  const key = process.env.GEMINI_API_KEY;
-  if (!key) {
-    const e = new Error("LION AI needs GEMINI_API_KEY in settings.");
-    e.status = 501;
-    throw e;
-  }
-  const models = (await flashModels(key)).slice(0, 3);
-  if (!models.length) models.push(process.env.GEMINI_MODEL || "gemini-3.8-flash");
-  let last = "LION AI is busy right now. Please try again in a minute.";
-  for (const model of models) {
-    try {
-      const r = await fetchT(BASE + "/models/" + model + ":generateContent", {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: "You are LION AI, a creative planning assistant inside LION STUDIO. Turn the user's video idea into 3 short scenes, a one-line image/video prompt for each, a short voice-over line and a one-line music idea. Keep the whole answer under 200 words. Reply in the user's language." }] },
-          contents: [{ role: "user", parts: [{ text: idea }] }],
-          generationConfig: { maxOutputTokens: 700 },
-        }),
-      }, 7000);
-      const data = await r.json();
-      if (!r.ok) { last = (data && data.error && data.error.message) || last; continue; }
-      const parts = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || [];
-      const text = parts.map((p) => p.text || "").join("\n").trim();
-      if (text) return text;
-    } catch {
-      last = "LION AI took too long. Please try again.";
-    }
-  }
-  const e = new Error(last);
-  e.status = 503;
-  throw e;
-}
-
-const app = express();
-app.use(cors());
-app.use(express.json({ limit: "2mb" }));
-
-app.get("/", (req, res) => res.send("LION STUDIO backend is running."));
-
-app.use("/api", (req, res, next) => {
-  const id = String(req.get("x-user-id") || "").slice(0, 64);
-  if (!id) return res.status(400).json({ ok: false, message: "Missing user id." });
-  req.uid = id;
-  next();
-});
-
-app.get("/api/credits", (req, res) => {
-  const d = load(); const u = getUser(d, req.uid); save(d);
-  res.json({ ok: true, credits: u.credits, plan: u.plan });
-});
-
-for (const name of Object.keys(COST)) {
-  app.post("/api/" + name, async (req, res) => {
-    const cost = COST[name];
-    const before = getUser(load(), req.uid);
-    if (before.credits < cost)
-      return res.status(402).json({ ok: false, credits: before.credits, message: "Not enough credits. This needs " + cost + "." });
-    try {
-      const out = await providers[name](promptOf(req.body), req.body);
-      const d = load(); const u = getUser(d, req.uid);
-      u.credits = Math.max(0, u.credits - cost);
-      if (out && out.url) u.items.push({ type: name, url: out.url, at: Date.now() });
-      save(d);
-      res.json({ ok: true, credits: u.credits, url: out && out.url, message: (out && out.message) || "Done." });
-    } catch (e) {
-      res.status(e.status || 500).json({ ok: false, credits: before.credits, message: e.message });
-    }
-  });
-}
-
-app.post("/api/ai", async (req, res) => {
-  try {
-    const idea = String((req.body && req.body.idea) || "").slice(0, 2000);
-    if (!idea.trim()) return res.status(400).json({ ok: false, message: "Write your video idea first." });
-    res.json({ ok: true, reply: await lionAI(idea) });
-  } catch (e) {
-    res.status(e.status || 500).json({ ok: false, message: e.message });
-  }
-});
-
-app.post("/api/account", (req, res) => {
-  const d = load(); const u = getUser(d, req.uid);
-  if (typeof req.body.an === "string") u.name = req.body.an.slice(0, 80);
-  if (typeof req.body.ae === "string") u.email = req.body.ae.slice(0, 120);
-  save(d);
-  res.json({ ok: true, message: "Account saved." });
-});
-
-for (const p of ["edit", "upload", "ocr"])
-  app.post("/api/" + p, (req, res) => res.status(501).json({ ok: false, message: "This feature is not built in the backend yet." }));
-
-app.listen(PORT, "0.0.0.0", () => console.log("LION STUDIO backend on port " + PORT));
