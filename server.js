@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import fs from "fs";
+import page from "./page.js";
 
 const PORT = process.env.PORT || 3000;
 const START_CREDITS = 50;
@@ -30,5 +31,4 @@ function wav(pcm, rate = 24000) {
   return Buffer.concat([h, pcm]);
 }
 
-const VOICES = { Female: "Kore", Male: "Charon", Child: "Leda" };
-const TTS_MODELS = process.env.GEMINI_TTS_MODEL
+const VOICES = { Female: "Kore", Male: "Charon
