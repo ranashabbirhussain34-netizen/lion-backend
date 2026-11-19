@@ -181,3 +181,13 @@ applyTheme(); setCredits(); home();
 </script>
 </body>
 </html>
+<style>.bubble{white-space:pre-wrap}</style>
+<script>
+var _api = api;
+api = function (p, d) {
+  return _api(p, d).then(function (r) {
+    if (r && r.reply) r.reply = r.reply.replace(/\*\*/g, "").replace(/^\s*\*\s/gm, "• ");
+    return r;
+  });
+};
+</script>
